@@ -182,6 +182,7 @@ var app =
     {
         app.lightbulbSession = lightbulbSession;
         app.displayInfo('Connected');
+        document.getElementById("powerButton").disabled = false;
         lsfLampState.initialize();
     },
 
@@ -191,20 +192,69 @@ var app =
         {
             if (lsfLampState.onOff)
             {
-                lsfLampState.hue = 0;
-                document.getElementById("hueBar").value = 0;
-                lsfLampState.saturation = 0;
-                document.getElementById("saturationBar").value = 0;
-                lsfLampState.colorTemp = 0;
-                document.getElementById("colorTempBar").value = 0;
-                lsfLampState.brightness = 0;
-                document.getElementById("brightnessBar").value = 0;
+                app.resetValues(0, 0);
+                app.updateControls(false);
                 lsfLampState.powerOff();
             }
             else
             {
+                app.updateControls(true);
                 lsfLampState.powerOn();
             }
+        }
+    },
+
+    onTransitionStateInvoke: function ()
+    {
+        if (app.lightbulbSession && lsfLampState.onOff && !lsfLampState.busy)
+        {
+            var transitionTime = 5000; // ms
+            var max = 0xFFFFFFFF - 1;
+
+            if (lsfLampState.brightness == 0)
+            {
+                app.updateControls(false);
+                setTimeout(function ()
+                {
+                    app.resetValues(max, 100);
+                    app.updateControls(true);
+                }, transitionTime);
+                lsfLampState.transitionState(true, max, max, max, max, transitionTime);
+            }
+            else
+            {
+                app.updateControls(false);
+                setTimeout(function ()
+                {
+                    app.resetValues(0, 0);
+                    app.updateControls(true);
+                }, transitionTime);
+                lsfLampState.transitionState(true, 0, 0, 0, 0, transitionTime);
+            }
+        }
+    },
+
+    onApplyPulseEffectInvoke: function ()
+    {
+        if (app.lightbulbSession && lsfLampState.onOff && !lsfLampState.busy)
+        {
+            var period = 1000; 
+            var duration = 500;
+            var numPulses = 5;
+
+            app.updateControls(false);
+
+            setTimeout(function ()
+            {
+                app.resetValues(lsfLampState.getOEMRange(100), 100);
+                app.updateControls(true);
+            }, period * numPulses);
+
+            lsfLampState.applyPulseEffect(
+                                            lsfLampState.getOEMRange(100), lsfLampState.getOEMRange(100), lsfLampState.getOEMRange(100), lsfLampState.getOEMRange(100),
+                                            lsfLampState.getOEMRange(1), lsfLampState.getOEMRange(1), lsfLampState.getOEMRange(1), lsfLampState.getOEMRange(1),
+                                            period, duration, numPulses
+                                         );
         }
     },
 
@@ -238,6 +288,28 @@ var app =
         {
             lsfLampState.setBrightness(this.value);
         }
+    },
+
+    updateControls: function (enabled)
+    {
+        document.getElementById("transitionStateButton").disabled = !enabled;
+        document.getElementById("applyPulseEffectButton").disabled = !enabled;
+        document.getElementById("hueBar").disabled = !enabled;
+        document.getElementById("saturationBar").disabled = !enabled;
+        document.getElementById("colorTempBar").disabled = !enabled;
+        document.getElementById("brightnessBar").disabled = !enabled;
+    },
+
+    resetValues: function (state, bar)
+    {
+        lsfLampState.hue = state;
+        lsfLampState.saturation = state;
+        lsfLampState.colorTemp = state;
+        lsfLampState.brightness = state;
+        document.getElementById("saturationBar").value = bar;
+        document.getElementById("hueBar").value = bar;
+        document.getElementById("colorTempBar").value = bar;
+        document.getElementById("brightnessBar").value = bar;
     },
 
     onSuccess: function ()
@@ -287,15 +359,16 @@ var lsfLampState =
 
         var onInitialized = function (returnArgs)
         {
-            lsfLampState.onOff = returnArgs[2];
             lsfLampState.hue = returnArgs[5];
-            document.getElementById("hueBar").value = lsfLampState.setPercentageRange(lsfLampState.hue);
             lsfLampState.saturation = returnArgs[8];
-            document.getElementById("saturationBar").value = lsfLampState.setPercentageRange(lsfLampState.saturation);
             lsfLampState.colorTemp = returnArgs[11];
-            document.getElementById("colorTempBar").value = lsfLampState.setPercentageRange(lsfLampState.colorTemp);
             lsfLampState.brightness = returnArgs[14];
-            document.getElementById("brightnessBar").value = lsfLampState.setPercentageRange(lsfLampState.brightness);
+            lsfLampState.onOff = returnArgs[17];
+            document.getElementById("hueBar").value = lsfLampState.getPercentageRange(lsfLampState.hue);
+            document.getElementById("saturationBar").value = lsfLampState.getPercentageRange(lsfLampState.saturation);
+            document.getElementById("colorTempBar").value = lsfLampState.getPercentageRange(lsfLampState.colorTemp);
+            document.getElementById("brightnessBar").value = lsfLampState.getPercentageRange(lsfLampState.brightness);
+            app.updateControls(lsfLampState.onOff);
         }
 
         app.lightbulbSession.callMethod(onInitialized, app.onError('Initialize'), null, null, initializeMsg, 's', args, 'a{sv}');
@@ -337,6 +410,51 @@ var lsfLampState =
         app.lightbulbSession.callMethod(onLampStateChanged, app.onError('TransitionLampState'), null, null, transitionLampStateMsg, 'ta{sv}u', args, 'u');
     },
 
+    applyPulseEffect: function (uFromHue, uFromSaturation, uFromColorTemp, uFromBrightness, uToHue, uToSaturation, uToColorTemp, uToBrightness, uPeriod, uDuration, uNumPulses)
+    {
+        var applyPulseEffectMsg = [2, 0, 4, 1]; // Proxy object list, object index, interface index, method index
+
+        var args =
+        [
+            [
+                ['OnOff', 'b', true],
+                ['Hue', 'u', uFromHue],
+                ['Saturation', 'u', uFromSaturation],
+                ['ColorTemp', 'u', uFromColorTemp],
+                ['Brightness', 'u', uFromBrightness]
+            ],
+            [
+                ['OnOff', 'b', true],
+                ['Hue', 'u', uToHue],
+                ['Saturation', 'u', uToSaturation],
+                ['ColorTemp', 'u', uToColorTemp],
+                ['Brightness', 'u', uToBrightness]
+            ],
+            uPeriod,
+            uDuration,
+            uNumPulses,
+            0
+        ];
+
+        var onPulseEffectInvoked = function (returnArgs)
+        {
+            var uResponse = returnArgs[0];
+
+            if (uResponse == 0) // successful
+            {
+                lsfLampState.onOff = true;
+                lsfLampState.hue = uToHue;
+                lsfLampState.saturation = uToSaturation;
+                lsfLampState.colorTemp = uToColorTemp;
+                lsfLampState.brightness = uToBrightness;
+                lsfLampState.busy = false;
+            }
+        }
+
+        lsfLampState.busy = true;
+        app.lightbulbSession.callMethod(onPulseEffectInvoked, app.onError('ApplyPulseEffect'), null, null, applyPulseEffectMsg, 'a{sv}a{sv}uuut', args, 'u');
+    },
+
     powerOn: function ()
     {
         lsfLampState.transitionState(true, lsfLampState.hue, lsfLampState.saturation, lsfLampState.colorTemp, lsfLampState.brightness, 0);
@@ -349,34 +467,34 @@ var lsfLampState =
 
     setHue: function (hue)
     {
-        var uHue = this.setOEMRange(hue);
+        var uHue = this.getOEMRange(hue);
         lsfLampState.transitionState(true, uHue, lsfLampState.saturation, lsfLampState.colorTemp, lsfLampState.brightness, 0);
     },
 
     setSaturation: function (saturation)
     {
-        var uSaturation = this.setOEMRange(saturation);
+        var uSaturation = this.getOEMRange(saturation);
         lsfLampState.transitionState(true, lsfLampState.hue, uSaturation, lsfLampState.colorTemp, lsfLampState.brightness, 0);
     },
 
     setColorTemp: function (colorTemp)
     {
-        var uColorTemp = this.setOEMRange(colorTemp);
+        var uColorTemp = this.getOEMRange(colorTemp);
         lsfLampState.transitionState(true, lsfLampState.hue, lsfLampState.saturation, uColorTemp, lsfLampState.brightness, 0);
     },
 
     setBrightness: function (brightness)
     {
-        var uBrightness = this.setOEMRange(brightness);
+        var uBrightness = this.getOEMRange(brightness);
         lsfLampState.transitionState(true, lsfLampState.hue, lsfLampState.saturation, lsfLampState.colorTemp, uBrightness, 0);
     },
 
-    setOEMRange: function (value)
+    getOEMRange: function (value)
     {
         return value * ((0xFFFFFFFF - 1) / 100);
     },
 
-    setPercentageRange: function (value)
+    getPercentageRange: function (value)
     {
         return value / ((0xFFFFFFFF - 1) / 100);
     }

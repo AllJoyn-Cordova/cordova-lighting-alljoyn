@@ -32,14 +32,14 @@
             <h2>Lighting Control</h2>
             <div id="info"></div>
             <br />
-            <span>Brightness<input id="brightnessBar" type="range" min="0" max="100" value="0" step="20" /></span>
-            <span>Hue<input id="hueBar" type="range" min="0" max="100" value="0" step="20" /></span>
-            <span>Saturation<input id="saturationBar" type="range" min="0" max="100" value="0" step="20" /></span>
-            <span>Color Temp<input id="colorTempBar" type="range" min="0" max="100" value="0" step="20" /></span>
+            <span class="sliderBar">Brightness<input id="brightnessBar" type="range" min="0" max="100" value="0" step="20" disabled /></span>
+            <span class="sliderBar">Hue<input id="hueBar" type="range" min="0" max="100" value="0" step="20" disabled /></span>
+            <span class="sliderBar">Saturation<input id="saturationBar" type="range" min="0" max="100" value="0" step="20" disabled /></span>
+            <span class="sliderBar">Color Temp<input id="colorTempBar" type="range" min="0" max="100" value="0" step="20" disabled /></span>
             <span>
-                <button id="powerButton" type="button">Power</button>
-                <button id="transitionStateButton" type="button">Transition</button>
-                <button id="applyPulseEffectButton" type="button">Pulse</button>
+                <button id="powerButton" type="button" disabled>Power</button>
+                <button id="transitionStateButton" type="button" disabled>Transition</button>
+                <button id="applyPulseEffectButton" type="button" disabled>Pulse</button>
             </span>
         </div>
         <script type="text/javascript" src="cordova.js"></script>
