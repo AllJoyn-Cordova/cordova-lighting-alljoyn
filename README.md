@@ -7,12 +7,12 @@ This application implements a simple lighting control.
 
 Building and Running on Windows
 -------------------------------
-For Windows compilation, a pre-release copy of Cordova libraries is required until the next Cordova release.  One must use a custom version of cordova-lib and cordova-cli.
+For Windows compilation, a pre-release copy of Cordova libraries is required until the 4.2.1 Cordova release. 
 
 This is related to the following bug, for which a fix is already tested and coming very soon.
 https://issues.apache.org/jira/browse/CB-8123
 
-This is how you clone the correct Cordova libraries:
+This is how you install Cordova from source, using npm:
 
 ```
 // Clone the right version of cordova-lib and cordova-cli
