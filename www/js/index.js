@@ -357,13 +357,22 @@ var lsfLampState =
             'org.allseen.LSF.LampState'
         ];
 
+        /**
+        /* ReturnArgs' structure: a{sv}
+        /*      {sv}[0] => Version
+        /*      {sv}[1] => Hue
+        /*      {sv}[2] => Saturation
+        /*      {sv}[3] => ColorTemp
+        /*      {sv}[4] => Brightness
+        /*      {sv}[5] => On/Off
+        */
         var onInitialized = function (returnArgs)
         {
-            lsfLampState.hue = returnArgs[5];
-            lsfLampState.saturation = returnArgs[8];
-            lsfLampState.colorTemp = returnArgs[11];
-            lsfLampState.brightness = returnArgs[14];
-            lsfLampState.onOff = returnArgs[17];
+            lsfLampState.hue = returnArgs[1][2];
+            lsfLampState.saturation = returnArgs[2][2];
+            lsfLampState.colorTemp = returnArgs[3][2];
+            lsfLampState.brightness = returnArgs[4][2];
+            lsfLampState.onOff = returnArgs[5][2];
             document.getElementById("hueBar").value = lsfLampState.getPercentageRange(lsfLampState.hue);
             document.getElementById("saturationBar").value = lsfLampState.getPercentageRange(lsfLampState.saturation);
             document.getElementById("colorTempBar").value = lsfLampState.getPercentageRange(lsfLampState.colorTemp);
