@@ -368,6 +368,7 @@ var lsfLampState =
         */
         var onInitialized = function (returnArgs)
         {
+            returnArgs = returnArgs[0]; // Get the 1st argument (array of props)
             lsfLampState.hue = returnArgs[1][2];
             lsfLampState.saturation = returnArgs[2][2];
             lsfLampState.colorTemp = returnArgs[3][2];
