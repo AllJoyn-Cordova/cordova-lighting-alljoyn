@@ -171,7 +171,7 @@ var app =
 
         var service =
         {
-            name: lightbulbInfo.name,
+            name: lightbulbInfo.message.sender,
             port: lightbulbInfo.port
         };
 
@@ -366,9 +366,9 @@ var lsfLampState =
         /*      {sv}[4] => Brightness
         /*      {sv}[5] => On/Off
         */
-        var onInitialized = function (returnArgs)
+        var onInitialized = function (getPropertiesMessage)
         {
-            returnArgs = returnArgs[0]; // Get the 1st argument (array of props)
+            var returnArgs = getPropertiesMessage.arguments[0]; // Get the 1st argument (array of props)
             lsfLampState.hue = returnArgs[1][2];
             lsfLampState.saturation = returnArgs[2][2];
             lsfLampState.colorTemp = returnArgs[3][2];
@@ -401,9 +401,9 @@ var lsfLampState =
             uTransitionPeriod
         ];
 
-        var onLampStateChanged = function (returnArgs)
+        var onLampStateChanged = function (lampStateChangedMessage)
         {
-            var uResponse = returnArgs[0];
+            var uResponse = lampStateChangedMessage.arguments[0];
 
             if (uResponse == 0) // successful
             {
@@ -446,9 +446,9 @@ var lsfLampState =
             0
         ];
 
-        var onPulseEffectInvoked = function (returnArgs)
+        var onPulseEffectInvoked = function (pulseEffectMessage)
         {
-            var uResponse = returnArgs[0];
+            var uResponse = pulseEffectMessage.arguments[0];
 
             if (uResponse == 0) // successful
             {
